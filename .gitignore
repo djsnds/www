@@ -1,0 +1,53 @@
+# Virtual Environment
+venv/
+.env/
+ENV/
+env/
+*.venv/
+
+# Файлы базы данных SQLite
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+
+# Резервные копии SQLite
+*.bak
+*.backup
+
+# Файлы IDE и редакторов
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Файлы окружения
+.env
+.env.local
+.env.development
+.env.production
+
+# Зависимости
+node_modules/
+vendor/
+
+# Логи
+*.log
+logs/
+
+# Скомпилированные файлы
+*.pyc
+__pycache__/
+*.class
+*.exe
+*.dll
+
+# Временные файлы
+tmp/
+temp/
