@@ -24,10 +24,10 @@ import { Brand, SubCategory } from '@/lib/types';
 interface FiltersProps {
   brands: Brand[];
   sizes: string[];
-  subcategories: SubCategory[];
+  subcategories?: SubCategory[];
 }
 
-export function Filters({ brands, sizes, subcategories }: FiltersProps) {
+export function Filters({ brands, sizes, subcategories = [] }: FiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

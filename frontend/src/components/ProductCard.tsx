@@ -25,7 +25,7 @@ export function ProductCard({ product, className, onCardClick }: ProductCardProp
       <CardHeader className="p-0">
         <div className="relative aspect-[4/5] w-full">
           <Image
-            src={product.images && product.images.length > 0 ? product.images[0].url : 'https://placehold.co/600x400/EEE/31343C?text=No+Image'}
+            src={product.images && product.images.length > 0 ? `/products/${product.images[0].url}` : 'https://placehold.co/600x400/EEE/31343C?text=No+Image'}
             alt={product.name}
             fill
             className="object-cover"

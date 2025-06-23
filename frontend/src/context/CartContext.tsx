@@ -1,22 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Product } from '@/lib/types';
+import { CartItem } from '@/lib/types';
 import { toast } from 'sonner';
-
-// Define the type for a single item in the cart
-export type CartItem = {
-  product: Product;
-  size: string;
-  quantity: number;
-};
 
 // Define the type for the context state and functions
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, size: string) => void;
-  removeFromCart: (productId: number, size: string) => void;
-  updateQuantity: (productId: number, size: string, quantity: number) => void;
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (variantId: number) => void;
+  updateQuantity: (variantId: number, quantity: number) => void;
   getCartTotal: () => number;
   getCartCount: () => number;
   clearCart: () => void;
@@ -63,56 +56,62 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
   }, [cart]);
 
-  const addToCart = (product: Product, size: string) => {
+  const addToCart = (newItem: CartItem) => {
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
-        item => item.product.id === product.id && item.size === size
+        item => item.id === newItem.id
       );
 
+      let updatedCart;
       if (existingItemIndex > -1) {
-        // Update quantity if item already exists
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += 1;
-        return updatedCart;
+        updatedCart = [...prevCart];
+        const existingItem = updatedCart[existingItemIndex];
+        const newQuantity = existingItem.quantity + newItem.quantity;
+        
+        if (newQuantity > existingItem.stock) {
+          toast.error(`Нельзя добавить больше, чем есть в наличии (${existingItem.stock} шт.)`);
+          return prevCart;
+        }
+        
+        updatedCart[existingItemIndex].quantity = newQuantity;
       } else {
-        // Add new item to cart
-        const newItem: CartItem = {
-          product,
-          size,
-          quantity: 1,
-        };
-        return [...prevCart, newItem];
+        if (newItem.quantity > newItem.stock) {
+          toast.error(`Нельзя добавить больше, чем есть в наличии (${newItem.stock} шт.)`);
+          return prevCart;
+        }
+        updatedCart = [...prevCart, newItem];
       }
+      toast.success(`${newItem.name} (${newItem.size}) добавлен в корзину.`);
+      return updatedCart;
     });
-    toast.success(`${product.name} (${size}) добавлен в корзину.`);
   };
 
-  const removeFromCart = (productId: number, size: string) => {
-    setCart(prevCart => prevCart.filter(
-      item => !(item.product.id === productId && item.size === size)
-    ));
+  const removeFromCart = (variantId: number) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== variantId));
     toast.info("Товар удален из корзины.");
   };
 
-  const updateQuantity = (productId: number, size: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId, size);
-      return;
-    }
+  const updateQuantity = (variantId: number, quantity: number) => {
     setCart(prevCart =>
-      prevCart.map(item =>
-        item.product.id === productId && item.size === size
-          ? { ...item, quantity }
-          : item
-      )
+      prevCart.map(item => {
+        if (item.id === variantId) {
+          if (quantity <= 0) {
+            // This will be handled by the filter in the return statement
+            return null; 
+          }
+          if (quantity > item.stock) {
+            toast.error(`Нельзя заказать больше, чем есть в наличии (${item.stock} шт.)`);
+            return item;
+          }
+          return { ...item, quantity };
+        }
+        return item;
+      }).filter(Boolean) as CartItem[]
     );
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = item.product.variants[0]?.price || 0;
-      return total + price * item.quantity;
-    }, 0);
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
   const getCartCount = () => {
@@ -121,7 +120,6 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   const clearCart = () => {
     setCart([]);
-    // toast.info("Корзина очищена."); // Optional: uncomment if you want a toast message
   };
 
   const value = {

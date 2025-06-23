@@ -16,8 +16,8 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const categoryTitles: Record<string, string> = {
-  'men-clothing': "Men's Clothing",
-  'women-clothing': "Women's Clothing",
+  'mens': "Men's Clothing",
+  'womens': "Women's Clothing",
   'sneakers': 'Sneakers',
 };
 
@@ -27,7 +27,7 @@ function CategoryPageContent() {
   const router = useRouter();
   
   const categoryParam = Array.isArray(params.category) ? params.category[0] : params.category;
-  const category = categoryParam as 'men-clothing' | 'women-clothing' | 'sneakers';
+  const category = categoryParam as 'mens' | 'womens' | 'sneakers';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -51,7 +51,17 @@ function CategoryPageContent() {
         const skip = (page - 1) * limit;
 
         const query = new URLSearchParams(searchParams.toString());
-        query.set('category_slug', category);
+        const selectedSubcategories = query.getAll('subcategory_slugs');
+
+        if (selectedSubcategories.length > 0) {
+          // If subcategories are selected, use the last selected one for filtering,
+          // as the backend only supports a single category slug.
+          query.set('category_slug', selectedSubcategories[selectedSubcategories.length - 1]);
+        } else {
+          // No subcategory selected, use the main category from the URL path.
+          query.set('category_slug', category);
+        }
+        
         query.set('limit', limit.toString());
         query.set('skip', skip.toString());
         
@@ -91,14 +101,19 @@ function CategoryPageContent() {
     fetchFilters();
   }, [category]);
 
-  if (!category || !categoryTitles[category]) {
-    // You might want to navigate to a 404 page instead
-    router.push('/404');
-    return null;
-  }
+  useEffect(() => {
+    if (category && !categoryTitles[category]) {
+      router.push('/404');
+    }
+  }, [category, router]);
 
   const handleCardClick = (product: Product) => setSelectedProduct(product);
   const handleModalClose = () => setSelectedProduct(null);
+
+  if (!category || !categoryTitles[category]) {
+    // Render a loading state or nothing while redirecting
+    return null;
+  }
 
   return (
     <>

@@ -1,28 +1,52 @@
 import { cn } from "@/lib/utils";
 
-export function Marquee() {
-  const textStyles = "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent";
+// An icon to be used as a separator
+const DiamondIcon = ({ className }: { className?: string }) => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn("h-3 w-3", className)}
+  >
+    <path
+      d="M7.49991 0.877045L14.1228 7.5L7.49991 14.1228L0.877014 7.5L7.49991 0.877045Z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
-  return (
-    <div className="relative flex h-10 w-full flex-row items-center justify-center overflow-hidden bg-gray-900 text-primary-foreground border-b border-gray-700">
-      <div className={cn(
-          "animate-marquee flex min-w-full shrink-0 items-center justify-around",
-          "motion-reduce:animate-none"
-        )}>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>Free Shipping on orders over 100$</p>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>100% authentic products</p>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>30-day return policy</p>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>Secure payments</p>
+// New content configuration with more colors
+const marqueeItems = [
+  { text: "Лимитированные релизы", color: "text-red-400" },
+  { text: "Стиль в каждом шаге", color: "text-amber-400" },
+  { text: "Экспресс-доставка", color: "text-lime-400" },
+  { text: "Только оригиналы", color: "text-cyan-400" },
+  { text: "Новая коллекция", color: "text-fuchsia-400" },
+  { text: "Гарантия качества", color: "text-white" },
+];
+
+const MarqueeContent = () => (
+  <>
+    {marqueeItems.map((item, index) => (
+      <div key={index} className="mx-6 flex items-center justify-center gap-6">
+        <p className={cn("text-sm font-medium", item.color)}>{item.text}</p>
+        <DiamondIcon className="text-neutral-600" />
       </div>
-       <div className={cn(
-          "animate-marquee2 absolute flex min-w-full shrink-0 items-center justify-around",
-          "motion-reduce:animate-none"
-        )}>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>Free Shipping on orders over 100$</p>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>100% authentic products</p>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>30-day return policy</p>
-        <p className={cn("mx-4 text-sm font-semibold", textStyles)}>Secure payments</p>
+    ))}
+  </>
+);
+
+export function Marquee() {
+  return (
+    <div className="relative flex h-10 w-full flex-row items-center overflow-hidden bg-neutral-900 border-b border-neutral-800">
+      <div className="animate-marquee flex min-w-full shrink-0 items-center justify-around">
+        <MarqueeContent />
+      </div>
+       <div className="animate-marquee2 absolute flex min-w-full shrink-0 items-center justify-around">
+        <MarqueeContent />
       </div>
     </div>
-  )
+  );
 } 

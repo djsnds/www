@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 import { CartView } from './CartView';
 
 const categories = [
-  { name: "Men's Clothing", href: '/men-clothing' },
-  { name: "Women's Clothing", href: '/women-clothing' },
+  { name: "Men's Clothing", href: '/mens' },
+  { name: "Women's Clothing", href: '/womens' },
   { name: 'Sneakers', href: '/sneakers' },
 ];
 

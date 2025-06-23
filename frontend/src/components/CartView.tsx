@@ -63,36 +63,32 @@ export function CartView() {
             <ScrollArea className="flex-grow pr-4">
               <div className="space-y-6">
                 {cart.map((item) => {
-                  if (!item.product) return null;
-
-                  const variant = item.product.variants?.[0];
-                  const price = variant?.price ?? 0;
                   const imageUrl = 
-                    item.product.images && item.product.images.length > 0 
-                      ? item.product.images[0].url 
+                    item.image
+                      ? `/products/${item.image}` 
                       : 'https://placehold.co/600x400/EEE/31343C?text=No+Image';
 
                   return (
-                    <div key={`${item.product.id}-${item.size}`} className="flex items-start gap-4">
+                    <div key={item.id} className="flex items-start gap-4">
                       <Image
                         src={imageUrl}
-                        alt={item.product.name}
+                        alt={item.name}
                         width={80}
                         height={100}
                         className="object-cover rounded-md"
                       />
                       <div className="flex-1">
-                        <h3 className="font-semibold">{item.product.name}</h3>
+                        <h3 className="font-semibold">{item.name}</h3>
                         <p className="text-sm text-muted-foreground">Размер: {item.size}</p>
                         <p className="text-sm">
-                          {price.toFixed(2)} руб.
+                          {item.price.toFixed(2)} руб.
                         </p>
                         <div className="flex items-center gap-2 mt-2">
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => updateQuantity(item.product.id, item.size, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
@@ -101,7 +97,7 @@ export function CartView() {
                             variant="outline"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => updateQuantity(item.product.id, item.size, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -111,7 +107,7 @@ export function CartView() {
                         variant="ghost"
                         size="icon"
                         className="text-muted-foreground"
-                        onClick={() => removeFromCart(item.product.id, item.size)}
+                        onClick={() => removeFromCart(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

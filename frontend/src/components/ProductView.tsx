@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
+import { CartItem } from '@/lib/types';
 
 interface ProductViewProps {
   product: Product | null;
@@ -41,7 +42,17 @@ export function ProductView({ product }: ProductViewProps) {
       )
     );
     if (selectedVariant && selectedVariant.stock > 0) {
-      addToCart(product, selectedSize);
+      const cartItem: CartItem = {
+        id: selectedVariant.id,
+        name: product.name,
+        price: selectedVariant.price,
+        quantity: 1,
+        image: product.images?.[0]?.url ?? '',
+        size: selectedSize,
+        sku: selectedVariant.sku,
+        stock: selectedVariant.stock,
+      };
+      addToCart(cartItem);
     } else {
       toast.error("Выбранный размер не доступен.");
     }
@@ -56,7 +67,7 @@ export function ProductView({ product }: ProductViewProps) {
               product.images.map((image, index) => (
                 <CarouselItem key={index}>
                   <Image
-                    src={image.url}
+                    src={`/products/${image.url}`}
                     alt={`${product.name} image ${index + 1}`}
                     width={600}
                     height={600}

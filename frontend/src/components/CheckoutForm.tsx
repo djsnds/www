@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useCart, CartItem } from "@/context/CartContext";
+import { useCart } from "@/context/CartContext";
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -27,9 +27,6 @@ const formSchema = z.object({
       required_error: "Необходимо выбрать способ доставки.",
     }),
     address: z.string().optional(),
-    contactMethod: z.array(z.string()).refine((value) => value.some((item) => item), {
-      message: "Необходимо выбрать хотя бы один способ связи.",
-    }),
     privacyPolicy: z.boolean().refine((value) => value === true, {
       message: "Необходимо согласиться с политикой конфиденциальности.",
     }),
@@ -58,7 +55,6 @@ export function CheckoutForm({ setOpen }: CheckoutFormProps) {
       phone: "",
       deliveryMethod: "pickup",
       address: "",
-      contactMethod: [],
       privacyPolicy: false,
     },
   });
@@ -68,16 +64,14 @@ export function CheckoutForm({ setOpen }: CheckoutFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      const orderDetails = {
-        ...values,
-        cart: cart.map((item: CartItem) => ({
-          productId: item.product.id,
-          name: item.product.name,
-          size: item.size,
+      const orderPayload = {
+        name: values.name,
+        phone: values.phone,
+        shipping_city: values.address || "Самовывоз",
+        cart: cart.map((item) => ({
+          ProductVariantId: item.id,
           quantity: item.quantity,
-          price: item.product.variants[0]?.price || 0,
         })),
-        totalPrice: getCartTotal(),
       };
 
       const response = await fetch('http://127.0.0.1:8000/api/checkout', {
@@ -85,7 +79,7 @@ export function CheckoutForm({ setOpen }: CheckoutFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(orderDetails),
+        body: JSON.stringify(orderPayload),
       });
 
       if (response.ok) {
@@ -106,12 +100,6 @@ export function CheckoutForm({ setOpen }: CheckoutFormProps) {
       setIsSubmitting(false);
     }
   }
-
-  const contactMethods = [
-    { id: "whatsapp", label: "WhatsApp" },
-    { id: "telegram", label: "Telegram" },
-    { id: "call", label: "Звонок" },
-  ];
 
   return (
     <Form {...form}>
@@ -189,72 +177,28 @@ export function CheckoutForm({ setOpen }: CheckoutFormProps) {
         )}
         <FormField
           control={form.control}
-          name="contactMethod"
-          render={() => (
-            <FormItem>
-              <div className="mb-4">
-                <FormLabel>Способ связи</FormLabel>
-              </div>
-              {contactMethods.map((item) => (
-                <FormField
-                  key={item.id}
-                  control={form.control}
-                  name="contactMethod"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={item.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(item.id)}
-                            onCheckedChange={(checked: boolean) => {
-                              return checked
-                                ? field.onChange([...(field.value || []), item.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== item.id
-                                    )
-                                  );
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {item.label}
-                        </FormLabel>
-                      </FormItem>
-                    );
-                  }}
+          name="privacyPolicy"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
                 />
-              ))}
-              <FormMessage />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Я согласен с {" "}
+                  <Link href="/privacy-policy" className="underline" target="_blank">
+                    политикой конфиденциальности
+                  </Link>
+                </FormLabel>
+              </div>
             </FormItem>
           )}
         />
-        <FormField
-            control={form.control}
-            name="privacyPolicy"
-            render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                        <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                        />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                        <FormLabel>
-                            Я согласен с <Link href="/privacy-policy" className="underline hover:text-primary">политикой конфиденциальности</Link>
-                        </FormLabel>
-                    </div>
-                </FormItem>
-            )}
-        />
-        <FormMessage>{form.formState.errors.privacyPolicy?.message}</FormMessage>
-
-        <Button type="submit" disabled={isSubmitting || cart.length === 0} className="w-full">
-          {isSubmitting ? "Обработка..." : `Подтвердить заказ на ${getCartTotal().toFixed(2)} руб.`}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Оформление..." : "Оформить заказ"}
         </Button>
       </form>
     </Form>
